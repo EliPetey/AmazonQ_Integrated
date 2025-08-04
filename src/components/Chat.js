@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
-import ReactMarkdown from 'react-markdown';
 
 const ChatContainer = styled.div`
   display: flex;
@@ -103,7 +102,6 @@ const Chat = () => {
   const [conversationId, setConversationId] = useState(null);
   const messagesEndRef = useRef(null);
   
-  // Replace with your API endpoint
   const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
   
   const scrollToBottom = () => {
@@ -132,7 +130,7 @@ const Chat = () => {
       const response = await axios.post(API_ENDPOINT, {
         query: input,
         conversationId: conversationId,
-        userId: 'user-' + Date.now() // Simple user ID, replace with actual user ID in production
+        userId: 'user-' + Date.now()
       });
       
       setConversationId(response.data.conversationId);
@@ -169,11 +167,7 @@ const Chat = () => {
         {messages.map((message, index) => (
           <MessageGroup key={index}>
             <Message isUser={message.type === 'user'}>
-              {message.type === 'user' ? (
-                <div>{message.content}</div>
-              ) : (
-                <ReactMarkdown>{message.content}</ReactMarkdown>
-              )}
+              <div>{message.content}</div>
             </Message>
             
             {message.citations && message.citations.length > 0 && (
