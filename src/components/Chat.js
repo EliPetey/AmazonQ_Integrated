@@ -113,48 +113,58 @@ const Chat = () => {
   }, [messages]);
   
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  if (!input.trim()) return;
+  
+  const userMessage = {
+    type: 'user',
+    content: input
+  };
+  
+  setMessages([...messages, userMessage]);
+  setInput('');
+  setIsLoading(true);
+  
+  try {
+    console.log("Sending request to:", API_ENDPOINT);
     
-    if (!input.trim()) return;
+    const response = await axios.post(API_ENDPOINT, {
+      query: input,
+      conversationId: conversationId,
+      userId: 'user-' + Date.now()
+    });
     
-    const userMessage = {
-      type: 'user',
-      content: input
+    console.log("Received response:", response.data);
+    
+    setConversationId(response.data.conversationId);
+    
+    const botResponse = {
+      type: 'bot',
+      content: response.data.text,
+      citations: response.data.citations || []
     };
     
-    setMessages([...messages, userMessage]);
-    setInput('');
-    setIsLoading(true);
+    setMessages(prev => [...prev, botResponse]);
+  } catch (error) {
+    console.error('Error calling API:', error);
     
-    try {
-      const response = await axios.post(API_ENDPOINT, {
-        query: input,
-        conversationId: conversationId,
-        userId: 'user-' + Date.now()
-      });
-      
-      setConversationId(response.data.conversationId);
-      
-      const botResponse = {
-        type: 'bot',
-        content: response.data.text,
-        citations: response.data.citations || []
-      };
-      
-      setMessages(prev => [...prev, botResponse]);
-    } catch (error) {
-      console.error('Error calling API:', error);
-      
-      const errorMessage = {
-        type: 'bot',
-        content: 'Sorry, I encountered an error. Please try again.'
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+    // More detailed error logging
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
     }
-  };
+    
+    const errorMessage = {
+      type: 'bot',
+      content: `Sorry, I encountered an error: ${error.message}. Please try again.`
+    };
+    
+    setMessages(prev => [...prev, errorMessage]);
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   return (
     <ChatContainer>
